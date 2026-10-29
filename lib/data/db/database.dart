@@ -1,8 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:music_player/models/enums.dart';
 import 'package:riverpod/riverpod.dart';
 import 'tables.dart';
-
+ 
 part 'database.g.dart';
 
 @DriftDatabase(tables: [

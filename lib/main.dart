@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:music_player/screens/splash.screen.dart';
 import 'package:music_player/utils/dotenv.helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +21,11 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   prefs = await SharedPreferences.getInstance();
 
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

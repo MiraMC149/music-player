@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:music_player/constants/app_colors.dart';
+import 'package:music_player/data/providers/library.provider.dart';
 import 'package:music_player/main.dart';
+import 'package:music_player/models/enums.dart';
 import 'package:music_player/widgets/search.input.dart';
 import 'package:tabler_icons_plus/tabler_icons_plus.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int currentViewIndex = 0;
   int currentSubViewIndex = 0;
 
@@ -59,205 +62,220 @@ class _HomeScreenState extends State<HomeScreen> {
     prefs.setString("subView", index.toString());
   }
 
+  void _handleAddingMediaDir() {
+    FolderKind type = currentViewIndex == 0
+        ? FolderKind.music
+        : FolderKind.audiobooks;
+    ref.read(addFolderControllerProvider.notifier).addFolder(type);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final scanning = ref.watch(addFolderControllerProvider).isLoading;
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Padding(
-        padding: EdgeInsetsGeometry.symmetric(vertical: 22, horizontal: 16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Row(
-                spacing: 12,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    TablerIcons.books,
-                    size: 32,
-                    color: AppColors.headerAccent,
-                  ),
-                  // Search Bar
-                ],
-              ),
-              SizedBox(height: 8),
-              Divider(color: AppColors.divider),
-              _buildBackground(context),
-              SizedBox(height: appSpacing),
-              Row(
-                spacing: 16,
-                children: [
-                  _buildActionButton(
-                    label: "Music",
-                    icon: TablerIcons.music,
-                    isSelected: currentViewIndex == 0,
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    onTap: () {
-                      toggleSelection(0);
-                    },
-                  ),
-                  _buildActionButton(
-                    label: "Audiobooks",
-                    icon: TablerIcons.book,
-                    isSelected: currentViewIndex == 1,
-                    width: MediaQuery.of(context).size.width * 0.44,
-                    onTap: () {
-                      toggleSelection(1);
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: appSpacing),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Your",
-                    style: GoogleFonts.plusJakartaSans(
-                      color: AppColors.header,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    currentViewIndex == 0 ? "library" : "audiobooks",
-                    style: GoogleFonts.plusJakartaSans(
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsetsGeometry.symmetric(vertical: 22, horizontal: 16),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Row(
+                  spacing: 12,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      TablerIcons.books,
+                      size: 32,
                       color: AppColors.headerAccent,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    child: Row(
-                      spacing: 7,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(
-                          TablerIcons.folderOpen,
-                          color: Colors.grey.shade600,
-                        ),
-                        Text(
-                          "Add folder",
-                          style: GoogleFonts.plusJakartaSans(
+                    // Search Bar
+                  ],
+                ),
+                SizedBox(height: 8),
+                Divider(color: AppColors.divider),
+                _buildBackground(context),
+                SizedBox(height: appSpacing),
+                Row(
+                  spacing: 16,
+                  children: [
+                    _buildActionButton(
+                      label: "Music",
+                      icon: TablerIcons.music,
+                      isSelected: currentViewIndex == 0,
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      onTap: () {
+                        toggleSelection(0);
+                      },
+                    ),
+                    _buildActionButton(
+                      label: "Audiobooks",
+                      icon: TablerIcons.book,
+                      isSelected: currentViewIndex == 1,
+                      width: MediaQuery.of(context).size.width * 0.44,
+                      onTap: () {
+                        toggleSelection(1);
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: appSpacing),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Your",
+                      style: GoogleFonts.plusJakartaSans(
+                        color: AppColors.header,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      currentViewIndex == 0 ? "library" : "audiobooks",
+                      style: GoogleFonts.plusJakartaSans(
+                        color: AppColors.headerAccent,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: scanning
+                          ? () {}
+                          : () {
+                              _handleAddingMediaDir();
+                            },
+                      child: Row(
+                        spacing: 7,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            TablerIcons.folderOpen,
                             color: Colors.grey.shade600,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
                           ),
+                          Text(
+                            "Add folder",
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Icon(
+                            TablerIcons.chevronRight,
+                            color: Colors.grey.shade600,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: appSpacing),
+                if (currentViewIndex == 0) ...[
+                  // Music Libraary View
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      spacing: 12,
+                      children: [
+                        _buildActionButton(
+                          label: "Songs",
+                          icon: TablerIcons.headphones,
+                          isSelected: currentSubViewIndex == 0,
+                          onTap: () {
+                            toggleSubViewSelection(0);
+                          },
                         ),
-                        Icon(
-                          TablerIcons.chevronRight,
-                          color: Colors.grey.shade600,
+                        _buildActionButton(
+                          label: "Playlists",
+                          icon: TablerIcons.playlist,
+                          isSelected: currentSubViewIndex == 1,
+                          onTap: () {
+                            toggleSubViewSelection(1);
+                          },
+                        ),
+                        _buildActionButton(
+                          label: "Artists",
+                          icon: TablerIcons.microphone2,
+                          isSelected: currentSubViewIndex == 2,
+                          onTap: () {
+                            toggleSubViewSelection(2);
+                          },
+                        ),
+                        _buildActionButton(
+                          label: "Albums",
+                          icon: TablerIcons.disc,
+                          isSelected: currentSubViewIndex == 3,
+                          onTap: () {
+                            toggleSubViewSelection(3);
+                          },
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              SizedBox(height: appSpacing),
-              if (currentViewIndex == 0) ...[
-                // Music Libraary View
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    spacing: 12,
-                    children: [
-                      _buildActionButton(
-                        label: "Songs",
-                        icon: TablerIcons.headphones,
-                        isSelected: currentSubViewIndex == 0,
-                        onTap: () {
-                          toggleSubViewSelection(0);
-                        },
-                      ),
-                      _buildActionButton(
-                        label: "Playlists",
-                        icon: TablerIcons.playlist,
-                        isSelected: currentSubViewIndex == 1,
-                        onTap: () {
-                          toggleSubViewSelection(1);
-                        },
-                      ),
-                      _buildActionButton(
-                        label: "Artists",
-                        icon: TablerIcons.microphone2,
-                        isSelected: currentSubViewIndex == 2,
-                        onTap: () {
-                          toggleSubViewSelection(2);
-                        },
-                      ),
-                      _buildActionButton(
-                        label: "Albums",
-                        icon: TablerIcons.disc,
-                        isSelected: currentSubViewIndex == 3,
-                        onTap: () {
-                          toggleSubViewSelection(3);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: appSpacing),
-                if (currentSubViewIndex == 0) ...[
-                  // Songs View
-                ] else if (currentSubViewIndex == 1) ...[
-                  // Playlists View
-                  Row(
-                    spacing: 12,
-                    children: [
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.54,
-                        child: TextField(
-                          controller: _playlistController,
-                          decoration: InputDecoration(
-                            focusColor: AppColors.divider,
-                            fillColor: Colors.grey.shade400,
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppColors.headerAccent,
-                                width: 1,
+                  SizedBox(height: appSpacing),
+                  if (currentSubViewIndex == 0) ...[
+                    // Songs View
+                  ] else if (currentSubViewIndex == 1) ...[
+                    // Playlists View
+                    Row(
+                      spacing: 12,
+                      children: [
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.54,
+                          child: TextField(
+                            controller: _playlistController,
+                            decoration: InputDecoration(
+                              focusColor: AppColors.divider,
+                              fillColor: Colors.grey.shade400,
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppColors.headerAccent,
+                                  width: 1,
+                                ),
                               ),
-                            ),
-                            hint: Text(
-                              "New playlist name",
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.grey.shade600,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
+                              hint: Text(
+                                "New playlist name",
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade800,
-                                width: 1,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade800,
+                                  width: 1,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      _buildActionButton(
-                        label: "Create",
-                        width: MediaQuery.of(context).size.width * 0.35,
-                        onTap: () {
-                          // todo: create playlist
-                        },
-                        icon: TablerIcons.plus,
-                        isSelected: true,
-                      ),
-                    ],
-                  ),
-                ] else if (currentSubViewIndex == 2) ...[
-                  // Artists View
+                        _buildActionButton(
+                          label: "Create",
+                          width: MediaQuery.of(context).size.width * 0.35,
+                          onTap: () {
+                            // todo: create playlist
+                          },
+                          icon: TablerIcons.plus,
+                          isSelected: true,
+                        ),
+                      ],
+                    ),
+                  ] else if (currentSubViewIndex == 2) ...[
+                    // Artists View
+                  ] else ...[
+                    // Albums View
+                  ],
                 ] else ...[
-                  // Albums View
+                  // Audiobooks View
                 ],
-              ] else ...[
-                // Audiobooks View
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -275,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: onTap,
       child: Container(
         width: width,
-        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           color: isSelected
