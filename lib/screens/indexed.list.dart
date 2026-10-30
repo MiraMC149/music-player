@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:music_player/constants/app_colors.dart';
 import 'package:music_player/models/library.view.dart';
 import 'package:music_player/widgets/library.widget.dart';
 
@@ -22,6 +23,7 @@ class IndexedListView extends StatefulWidget {
     this.letterOf,
     this.itemExtent = kRowExtent,
     this.headerExtent = 32,
+    this.primary = false,
   });
 
   final int itemCount;
@@ -32,6 +34,11 @@ class IndexedListView extends StatefulWidget {
 
   final double itemExtent;
   final double headerExtent;
+
+  /// Set to true when this list is the body of a NestedScrollView (or should
+  /// otherwise share the screen's primary scroll controller), so that the
+  /// header collapses as the list scrolls and the slider can still jump.
+  final bool primary;
 
   @override
   State<IndexedListView> createState() => _IndexedListViewState();
@@ -48,16 +55,19 @@ class _Row {
 }
 
 class _IndexedListViewState extends State<IndexedListView> {
-  final _controller = ScrollController();
+  final _ownController = ScrollController();
   final _active = ValueNotifier<String?>(null);
   Timer? _hideTimer;
   String _lastShown = '#';
+
+  ScrollController? get _controller =>
+      widget.primary ? PrimaryScrollController.maybeOf(context) : _ownController;
 
   @override
   void dispose() {
     _hideTimer?.cancel();
     _active.dispose();
-    _controller.dispose();
+    _ownController.dispose();
     super.dispose();
   }
 
@@ -89,9 +99,10 @@ class _IndexedListViewState extends State<IndexedListView> {
 
   void _jumpTo(String letter, Map<String, double> offsets) {
     final target = _resolve(letter, offsets.keys.toSet());
-    if (target == null || !_controller.hasClients) return;
-    final max = _controller.position.maxScrollExtent;
-    _controller.jumpTo(math.min(max, math.max(0.0, offsets[target]!)));
+    final controller = _controller;
+    if (target == null || controller == null || !controller.hasClients) return;
+    final max = controller.position.maxScrollExtent;
+    controller.jumpTo(math.min(max, math.max(0.0, offsets[target]!)));
   }
 
   @override
@@ -117,7 +128,8 @@ class _IndexedListViewState extends State<IndexedListView> {
     }
 
     final list = ListView.builder(
-      controller: _controller,
+      controller: widget.primary ? null : _ownController,
+      primary: widget.primary ? true : null,
       itemCount: rows.length,
       itemExtentBuilder: (index, _) =>
           rows[index].isHeader ? widget.headerExtent : widget.itemExtent,
@@ -131,7 +143,6 @@ class _IndexedListViewState extends State<IndexedListView> {
 
     if (letterOf == null) return list;
 
-    final scheme = Theme.of(context).colorScheme;
     return Stack(
       children: [
         Row(
@@ -163,13 +174,13 @@ class _IndexedListViewState extends State<IndexedListView> {
                     height: 72,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
+                      color: AppColors.accent,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       _lastShown,
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            color: scheme.onPrimaryContainer,
+                            color: AppColors.header,
                           ),
                     ),
                   ),
@@ -194,11 +205,11 @@ class _SectionHeader extends StatelessWidget {
     return Container(
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      color: theme.colorScheme.surfaceContainerLow,
+      color: AppColors.playerBackground,
       child: Text(
         letter,
         style: theme.textTheme.labelLarge?.copyWith(
-          color: theme.colorScheme.primary,
+          color: AppColors.header,
           fontWeight: FontWeight.bold,
         ),
       ),

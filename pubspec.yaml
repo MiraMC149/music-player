@@ -53,6 +53,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.6
   flutter_riverpod: ^3.4.3
+  audio_video_progress_bar: ^2.0.3
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:music_player/constants/app_colors.dart';
 import 'package:music_player/data/providers/library.provider.dart';
 import 'package:music_player/models/enums.dart';
 import 'package:music_player/models/library.view.dart';
@@ -109,7 +110,7 @@ class LibraryHeader extends StatelessWidget {
               label: const Text('Shuffle'),
             ),
           const Spacer(),
-          Text(countLabel, style: Theme.of(context).textTheme.labelLarge),
+          Text(countLabel, style: TextStyle(color: Colors.grey.shade400)),
           if (trailing != null) trailing!,
         ],
       ),
@@ -169,21 +170,26 @@ class EmptyLibrary extends ConsumerWidget {
             Icon(
               music ? Icons.library_music : Icons.menu_book,
               size: 64,
-              color: theme.colorScheme.outline,
+              color: Colors.grey.shade600,
             ),
             const SizedBox(height: 16),
             Text(
               music ? 'No music yet' : 'No audiobooks yet',
-              style: theme.textTheme.titleMedium,
+              style: TextStyle(
+                color: AppColors.header,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Add a folder and everything inside it will show up here.',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.header,
+              ),
             ),
             const SizedBox(height: 24),
             if (scanning)
-              const CircularProgressIndicator()
+              const CircularProgressIndicator(color: AppColors.headerAccent)
             else
               FilledButton.icon(
                 onPressed: () => ref
@@ -191,6 +197,9 @@ class EmptyLibrary extends ConsumerWidget {
                     .addFolder(kind),
                 icon: const Icon(Icons.create_new_folder),
                 label: const Text('Add folder'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accent
+                ),
               ),
           ],
         ),

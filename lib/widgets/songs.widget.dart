@@ -5,7 +5,6 @@ import 'package:music_player/models/library.view.dart';
 import 'package:music_player/screens/indexed.list.dart';
 import 'package:music_player/widgets/library.widget.dart';
 
-
 class SongsView extends ConsumerWidget {
   const SongsView({super.key});
 
@@ -37,6 +36,7 @@ class SongsView extends ConsumerWidget {
                 Expanded(
                   child: IndexedListView(
                     key: ValueKey(sort), // reset scroll position when sort changes
+                    primary: true,
                     itemCount: tracks.length,
                     letterOf: sort.isAlphabetical
                         ? (i) => songSectionLetter(tracks[i], sort)
